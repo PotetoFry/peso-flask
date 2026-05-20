@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-
+import os
 # ============================================================
 # APP SETUP
 # ============================================================
@@ -18,7 +18,7 @@ def inject_currency():
 
 
 app.config['SECRET_KEY'] = 'change-this-to-a-random-string'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///finance.db')
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
