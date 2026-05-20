@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Transaction - Finance App</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            padding: 40px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 1rem;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+
+        .radio-input {
+            display: none;
+        }
+
+        /* Styling for selected Expense type */
+        #type-expense:checked + .radio-label {
+            border-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.08);
+            color: var(--danger);
+        }
+
+        /* Styling for selected Income type */
+        #type-income:checked + .radio-label {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            margin-top: 15px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        /* Alert styling */
+        .alerts {
+            margin-bottom: 20px;
+            list-style: none;
+        }
+
+        .alert-item {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Add Transaction</h1>
+        <p>Log a new income flow or expense item</p>
+    </div>
+
+    <!-- Flask Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="alerts">
+        {% for message in messages %}
+          <li class="alert-item">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/transactions/add">
+        <label>Transaction Type</label>
+        <div class="radio-group">
+            <div class="option-container">
+                <input type="radio" id="type-expense" name="type" value="expense" class="radio-input" checked>
+                <label for="type-expense" class="radio-label">Expense</label>
+            </div>
+            <div class="option-container">
+                <input type="radio" id="type-income" name="type" value="income" class="radio-input">
+                <label for="type-income" class="radio-label">Income</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount ($)</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+                <option value="" disabled selected>Choose a category...</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Rent & Housing">Rent & Housing</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Salary & Earnings">Salary & Earnings</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Savings">Savings</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description (Optional)</label>
+            <input type="text" id="description" name="description" placeholder="e.g., Weekly groceries">
+        </div>
+
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Transaction</button>
+        <a href="/dashboard" class="btn btn-secondary">Cancel & Back</a>
+    </form>
+</div>
+
+<script>
+    // Automatically set today's date into the input field on load
+    document.getElementById('date').valueAsDate = new Date();
+</script>
+
+</body>
+</html>

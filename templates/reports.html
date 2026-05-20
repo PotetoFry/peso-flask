@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f5f7fb; }
+        .navbar { background: linear-gradient(135deg, #667eea, #764ba2) !important; }
+        .sidebar { background: white; min-height: 100vh; border-right: 1px solid #eee; }
+        .sidebar .nav-link { margin: 4px 12px; border-radius: 12px; padding: 10px 16px; color: #555; font-weight: 500; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #f0f2ff; color: #667eea; }
+        .sidebar .nav-link.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); padding: 20px; }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark sticky-top px-3">
+        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">ExpenseTracker</a>
+        <div class="ms-auto"><a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm rounded-pill">Logout</a></div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-md-block sidebar p-3">
+                <ul class="nav flex-column">
+                    <li><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li><a class="nav-link" href="{{ url_for('transactions') }}"><i class="bi bi-arrow-left-right me-2"></i>Transactions</a></li>
+                    <li><a class="nav-link" href="{{ url_for('budgets') }}"><i class="bi bi-wallet2 me-2"></i>Budgets</a></li>
+                    <li><a class="nav-link" href="{{ url_for('goals') }}"><i class="bi bi-bullseye me-2"></i>Goals</a></li>
+                    <li><a class="nav-link active" href="{{ url_for('reports') }}"><i class="bi bi-graph-up me-2"></i>Reports</a></li>
+                </ul>
+            </nav>
+
+            <main class="col-md-10 ms-sm-auto px-4 py-4">
+                <h2 class="fw-bold mb-4">Financial Reports</h2>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <h5 class="fw-bold mb-4">Income Breakdown</h5>
+                            <canvas id="incomeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <h5 class="fw-bold mb-4">Expense Breakdown</h5>
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const ctxIncome = document.getElementById('incomeChart').getContext('2d');
+        new Chart(ctxIncome, {
+            type: 'pie',
+            data: {
+                labels: {{ income_labels | tojson }},
+                datasets: [{
+                    data: {{ income_values | tojson }},
+                    backgroundColor: ['#4facfe', '#00f2fe', '#84fab0', '#8fd3f4']
+                }]
+            }
+        });
+
+        const ctxExpense = document.getElementById('expenseChart').getContext('2d');
+        new Chart(ctxExpense, {
+            type: 'pie',
+            data: {
+                labels: {{ expense_labels | tojson }},
+                datasets: [{
+                    data: {{ expense_values | tojson }},
+                    backgroundColor: ['#f093fb', '#f5576c', '#ff9a9e', '#fad0c4']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

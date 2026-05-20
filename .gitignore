@@ -1,0 +1,20 @@
+Environments
+
+venv/
+env/
+
+Python Cache
+
+pycache/
+*.pyc
+
+Database (NEVER upload your real database to GitHub for security!)
+
+instance/
+*.db
+finance.db
+
+IDEs
+
+.vscode/
+.idea/
