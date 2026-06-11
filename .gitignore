@@ -12,7 +12,7 @@ Database (NEVER upload your real database to GitHub for security!)
 
 instance/
 *.db
-finance.db
+peso.db
 
 IDEs
 
