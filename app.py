@@ -12,13 +12,11 @@ import os
 
 app = Flask(__name__)
 
-
 @app.context_processor
 def inject_currency():
     return dict(CURRENCY_SYMBOL='₱')
 
-
-app.config['SECRET_KEY'] = 'change-this-to-a-random-string'
+app.config['SECRET_KEY'] = '3a1b9e0f2c4d6a7b8e9f0a1b2c3d4e5f6a7b8e9f0a1b2c3d4e5f6a7b8e9f0a1b'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///finance.db')
 
 db = SQLAlchemy(app)
@@ -66,6 +64,8 @@ class Budget(db.Model):
         total_expense = sum(tx.amount for tx in user_transactions if tx.type == 'expense')
         return self.limit_amount - total_expense
 
+    def is_exceeded(self):
+        return self.get_remaining_budget() < 0
 
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,6 +73,14 @@ class Goal(db.Model):
     name = db.Column(db.String(100), nullable=False)
     target_amount = db.Column(db.Float, nullable=False)
     current_amount = db.Column(db.Float, default=0.0)
+
+    def get_progress(self):
+        if self.target_amount <= 0:
+            return 0
+        # Multiplying by 100.0 forces floating-point math
+        progress = (self.current_amount / self.target_amount) * 100.0
+        # Cap at 100% so the bar doesn't grow off the screen
+        return min(progress, 100.0)
 
     def add_contribution(self, amount):
         self.current_amount += amount
@@ -440,11 +448,10 @@ if __name__ == '__main__':
             if not Category.query.filter_by(name=cat_name).first():
                 db.session.add(Category(name=cat_name))
 
-        admin_email = "admin@financeapp.com"
+        admin_email = "admin@pesoapp.com"
         if not User.query.filter_by(email=admin_email).first():
-            print("--> Seeding system administrator account...")
             admin_user = User(name="System Admin", email=admin_email, role="admin")
-            admin_user.set_password("AdminSecurePassword2026!")
+            admin_user.set_password("admin@123")
             db.session.add(admin_user)
             log_activity("System initialized default master admin account.")
 
