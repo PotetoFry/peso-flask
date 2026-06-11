@@ -330,14 +330,62 @@ def add_goal():
     return redirect(url_for('goals'))
 
 
+@app.route('/goals/delete/<int:goal_id>')
+@login_required
+def delete_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    if goal.user_id == current_user.id:
+        db.session.delete(goal)
+        db.session.commit()
+        flash(f"Goal '{goal.name}' was removed, and its temporary balance was cleared.", "info")
+    return redirect(url_for('goals'))
+
+
 @app.route('/goals/contribute/<int:goal_id>', methods=['POST'])
 @login_required
 def contribute_goal(goal_id):
-    goal = Goal.query.get(goal_id)
-    if goal and goal.user_id == current_user.id:
-        goal.add_contribution(float(request.form['amount']))
+    # Find the specific goal
+    goal = Goal.query.get_or_404(goal_id)
+
+    # Security check: make sure the logged-in user actually owns this goal
+    if goal.user_id == current_user.id:
+        amount_str = request.form.get('amount')
+        try:
+            amount = float(amount_str)
+            if amount > 0:
+                goal.current_amount += amount
+                db.session.commit()
+                flash(f"Successfully deposited ₱{amount:,.2f} into '{goal.name}'.", "success")
+            else:
+                flash("Contribution amount must be greater than zero.", "error")
+        except (ValueError, TypeError):
+            flash("Please enter a valid number.", "error")
+
     return redirect(url_for('goals'))
 
+@app.route('/goals/complete/<int:goal_id>', methods=['POST'])
+@login_required
+def complete_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    if goal.user_id == current_user.id:
+        # 1. Create the official expense transaction
+        completed_tx = Transaction(
+            user_id=current_user.id,
+            amount=goal.current_amount,
+            type='expense',
+            category='Goal',
+            description=f"Goal Completed: {goal.name}",
+            date=datetime.utcnow()
+        )
+        db.session.add(completed_tx)
+
+        # 2. Remove the goal from the active dashboard list
+        db.session.delete(goal)
+        db.session.commit()
+
+        flash(f"Success! '{goal.name}' has been closed. ₱{goal.current_amount:,.2f} recorded under Goal Expenses.",
+              "success")
+    return redirect(url_for('goals'))
 
 # ============================================================
 # REPORTS ROUTE
