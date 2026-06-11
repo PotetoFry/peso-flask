@@ -17,7 +17,7 @@ def inject_currency():
     return dict(CURRENCY_SYMBOL='₱')
 
 app.config['SECRET_KEY'] = '3a1b9e0f2c4d6a7b8e9f0a1b2c3d4e5f6a7b8e9f0a1b2c3d4e5f6a7b8e9f0a1b'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///finance.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///peso.db')
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -60,8 +60,30 @@ class Budget(db.Model):
     period = db.Column(db.String(20), default='monthly')
 
     def get_remaining_budget(self):
+        now = datetime.utcnow()
         user_transactions = Transaction.query.filter_by(user_id=self.user_id, category=self.category).all()
-        total_expense = sum(tx.amount for tx in user_transactions if tx.type == 'expense')
+
+        total_expense = 0
+
+        for tx in user_transactions:
+            if tx.type == 'expense':
+
+                # Logic for MONTHLY budgets
+                if self.period == 'monthly':
+                    if tx.date.month == now.month and tx.date.year == now.year:
+                        total_expense += tx.amount
+
+                # Logic for WEEKLY budgets
+                elif self.period == 'weekly':
+                    # .isocalendar() returns a tuple: (ISO_year, ISO_week_number, ISO_weekday)
+                    current_week = now.isocalendar()[1]
+                    current_year = now.isocalendar()[0]
+                    tx_week = tx.date.isocalendar()[1]
+                    tx_year = tx.date.isocalendar()[0]
+
+                    if tx_week == current_week and tx_year == current_year:
+                        total_expense += tx.amount
+
         return self.limit_amount - total_expense
 
     def is_exceeded(self):
