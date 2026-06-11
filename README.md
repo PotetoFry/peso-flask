@@ -11,4 +11,4 @@ Before you begin, ensure you have [Python](https://www.python.org/downloads/) in
 Download the code to your local machine:
 ```bash
 git clone [https://github.com/PotetoFry/peso-flask.git](https://github.com/PotetoFry/peso-flask.git)
-cd YourRepositoryName
+cd peso-flask
