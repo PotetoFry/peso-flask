@@ -25,8 +25,9 @@ Windows:
 
 ``` bash
 venv\Scripts\activate
-Mac/Linux:
 ```
+Mac/Linux:
+
 ```bash
 source venv/bin/activate
 ```
