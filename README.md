@@ -1,4 +1,4 @@
-# Expense Tracker
+# Peso app
 
 A lightweight, local web application built with Python and Flask to help track savings goals, budgets, and daily expenses. 
 
