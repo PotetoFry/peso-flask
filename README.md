@@ -18,8 +18,9 @@ It's highly recommended to run this app inside a virtual environment to keep dep
 
 ```bash
 python -m venv venv
-3. Activate the Virtual Environment
 ```
+3. Activate the Virtual Environment
+
 Windows:
 
 ``` bash
