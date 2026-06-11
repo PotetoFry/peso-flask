@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Expense Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Panel - Expense Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,14 +14,23 @@
         .sidebar .nav-link { margin: 4px 12px; border-radius: 12px; padding: 10px 16px; color: #555; font-weight: 500; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #f0f2ff; color: #667eea; }
         .sidebar .nav-link.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .table { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        .card { border: none; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        .table { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.04); background: white; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 50px; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .bg-light-purple { background-color: #f0f2ff; color: #667eea; }
+        .log-item { border-left: 3px solid #667eea; background: #fafbff; margin-bottom: 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
     <header class="navbar navbar-dark sticky-top px-3">
         <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">ExpenseTracker</a>
-        <div class="ms-auto"><a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm rounded-pill">Logout</a></div>
+        <div class="ms-auto">
+            <span class="text-light me-3 small d-none d-sm-inline">Logged in as: <strong>{{ current_user.name }} (Admin)</strong></span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm rounded-pill">Logout</a>
+        </div>
     </header>
+    
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-2 d-md-block sidebar p-3">
@@ -30,36 +40,189 @@
                     <li><a class="nav-link" href="{{ url_for('budgets') }}"><i class="bi bi-wallet2 me-2"></i>Budgets</a></li>
                     <li><a class="nav-link" href="{{ url_for('goals') }}"><i class="bi bi-bullseye me-2"></i>Goals</a></li>
                     <li><a class="nav-link" href="{{ url_for('reports') }}"><i class="bi bi-graph-up me-2"></i>Reports</a></li>
-                    <li><a class="nav-link active" href="{{ url_for('admin_panel') }}"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>
+                    {% if current_user.role == 'admin' %}
+                    <li><a class="nav-link active" href="{{ url_for('admin_panel') }}"><i class="bi bi-shield-lock me-2"></i>Admin Panel</a></li>
+                    {% endif %}
                 </ul>
             </nav>
+
             <main class="col-md-10 ms-sm-auto px-4 py-4">
-                <h2 class="fw-bold">Admin Panel</h2>
-                {% if users %}
-                <div class="table-responsive mt-4">
-                    <table class="table table-hover align-middle">
-                        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
-                        <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>{{ user.name }}</td>
-                            <td>{{ user.email }}</td>
-                            <td><span class="badge rounded-pill bg-{{ 'danger' if user.role=='admin' else 'secondary' }}">{{ user.role }}</span></td>
-                            <td>
-                                <a href="{{ url_for('admin_delete_user', user_id=user.id) }}" class="btn btn-outline-danger btn-sm rounded-pill" onclick="return confirm('Delete {{ user.name }}?')"><i class="bi bi-trash"></i></a>
-                            </td>
-                        </tr>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0">Admin Dashboard</h2>
+                    <span class="badge bg-dark px-3 py-2 rounded-pill">System Management Mode</span>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show rounded-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
                         {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-3">
+                        <div class="card p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="text-muted fw-semibold uppercase mb-1" style="font-size: 0.75rem;">Total Users</h6>
+                                    <h3 class="fw-bold mb-0">{{ users|length }}</h3>
+                                </div>
+                                <div class="stat-icon bg-light-purple"><i class="bi bi-people-fill"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="text-muted fw-semibold uppercase mb-1" style="font-size: 0.75rem;">Total Transactions</h6>
+                                    <h3 class="fw-bold mb-0">{{ total_tx_count }}</h3>
+                                </div>
+                                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-arrow-left-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="text-muted fw-semibold uppercase mb-1" style="font-size: 0.75rem;">Platform Wealth</h6>
+                                    <h3 class="fw-bold mb-0 text-primary">{{ CURRENCY_SYMBOL }}{{ "%.2f"|format(platform_wealth) }}</h3>
+                                </div>
+                                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-bank"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="text-muted fw-semibold uppercase mb-1" style="font-size: 0.75rem;">Avg User Balance</h6>
+                                    <h3 class="fw-bold mb-0 {% if avg_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ CURRENCY_SYMBOL }}{{ "%.2f"|format(avg_balance) }}
+                                    </h3>
+                                </div>
+                                <div class="stat-icon {% if avg_balance >= 0 %}bg-success{% else %}bg-danger{% endif %} bg-opacity-10 {% if avg_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-7">
+                        <div class="row g-4 h-100">
+                            <div class="col-12">
+                                <div class="card h-100">
+                                    <div class="card-header bg-white fw-semibold border-0 pt-4 px-4 pb-0">
+                                        <i class="bi bi-tags-fill me-2 text-primary"></i>Create Global Transaction Category
+                                    </div>
+                                    <div class="card-body px-4 pb-4">
+                                        <form method="POST" action="/admin/categories/add" class="d-flex align-items-center gap-3">
+                                            <input type="text" name="category_name" class="form-control form-control-sm w-50" placeholder="e.g., Medical, Subscriptions" required>
+                                            <button type="submit" class="btn btn-primary btn-sm px-4">Add Category</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="card h-100">
+                                    <div class="card-header bg-white fw-semibold border-0 pt-4 px-4 pb-0">
+                                        <i class="bi bi-person-plus-fill me-2 text-primary"></i>Provision New Admin Account
+                                    </div>
+                                    <div class="card-body px-4 pb-4">
+                                        <form method="POST" action="/admin/users/add-admin">
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-4">
+                                                    <input type="text" name="name" class="form-control form-control-sm" placeholder="Full Name" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="email" name="email" class="form-control form-control-sm" placeholder="Email Address" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="password" name="password" class="form-control form-control-sm" placeholder="Master Password" required>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm px-4">Provision Admin</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="card h-100">
+                            <div class="card-header bg-white fw-semibold border-0 pt-4 px-4 pb-3">
+                                <i class="bi bi-activity me-2 text-danger"></i>Recent System Activity
+                            </div>
+                            <div class="card-body px-4 pb-4 overflow-auto" style="max-height: 280px;">
+                                <ul class="list-unstyled mb-0">
+                                    {% for log in logs %}
+                                    <li class="log-item p-2 px-3 small d-flex justify-content-between align-items-center">
+                                        <span class="text-dark">{{ log.description }}</span>
+                                        <span class="text-muted ms-3" style="font-size: 0.7rem;">{{ log.timestamp.strftime('%b %d, %H:%M') }}</span>
+                                    </li>
+                                    {% else %}
+                                    <p class="text-muted small">No recent activity recorded.</p>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="fw-semibold mb-3"><i class="bi bi-shield-shaded me-2 text-secondary"></i>User Account Master Directory</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle bg-white">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">User ID</th>
+                                <th>Profile Name</th>
+                                <th>Registered Email</th>
+                                <th>Role Tier</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td class="ps-4 text-muted fw-mono">#{{ user.id }}</td>
+                                <td class="fw-semibold text-dark">{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-1 {% if user.role == 'admin' %}bg-danger bg-opacity-10 text-danger{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                                        {{ user.role | upper }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    {% if user.id != current_user.id %}
+                                    <form action="{{ url_for('admin_delete_user', target_user_id=user.id) }}" method="POST" class="d-inline" onsubmit="return confirm('CRITICAL WARNING: You are about to permanently delete {{ user.name }} and all associated financial data (transactions, budgets, goals). This action cannot be undone. Proceed?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-trash-fill"></i> Delete</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-light text-muted border px-3 py-2">Current Session</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <p class="text-muted">No users found.</p>
-                {% endif %}
+
             </main>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
